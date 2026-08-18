@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  omniflow:
+    build: .
+    container_name: omniflow_app
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000

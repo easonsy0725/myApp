@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OmniFlow - HKD Savings & Bills</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .pb-safe { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+    .day-cell { transition: all 0.15s ease; cursor: pointer; }
+    .day-cell:active { transform: scale(0.92); }
+  </style>
+</head>
+<body id="app-body" class="bg-zinc-100 text-zinc-900 flex justify-center min-h-screen">
+
+  <div id="app-container" class="w-full max-w-md bg-zinc-50 dark:bg-zinc-950 min-h-screen flex flex-col relative pb-safe border-x border-zinc-200 dark:border-zinc-800 transition-colors">
+    
+    <!-- Header -->
+    <header id="app-header" class="px-5 pt-6 pb-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-20 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center transition-colors">
+      <div>
+        <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase" id="header-date">2026 / 08</span>
+        <h1 id="page-title" class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">My Calendar</h1>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button onclick="toggleLanguage()" id="lang-btn" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition">
+          繁體中文
+        </button>
+        <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition">
+          <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main View -->
+    <main class="p-4 flex-1 space-y-4">
+
+      <!-- 1. CALENDAR TAB -->
+      <div id="tab-calendar" class="tab-content space-y-4">
+        <div id="calendar-card" class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm transition-colors">
+          <div class="flex justify-between items-center mb-4">
+            <span class="font-bold text-zinc-900 dark:text-zinc-100 text-base" id="month-display">August 2026</span>
+            <div class="flex gap-3 text-zinc-600 dark:text-zinc-300">
+              <button onclick="changeMonth(-1)" class="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg active:scale-90 transition">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+              </button>
+              <button onclick="changeMonth(1)" class="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg active:scale-90 transition">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="calendar-week-headers" class="grid grid-cols-7 text-center text-xs font-semibold text-zinc-400 mb-3">
+            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+          </div>
+
+          <div id="calendar-days-grid" class="grid grid-cols-7 text-center text-sm gap-y-2 text-zinc-700 dark:text-zinc-200 font-medium"></div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="selected-date-title">August 18 Agenda</h3>
+            <span class="text-[11px] text-zinc-400" id="lbl-tap-date">Tap date to switch view</span>
+          </div>
+          <div id="day-events-container" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- 2. BILLS TAB -->
+      <div id="tab-bills" class="tab-content space-y-4 hidden">
+        <div class="flex gap-2 p-1 bg-zinc-200/70 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold">
+          <button id="filter-btn-all" onclick="filterBills('all')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm transition">All</button>
+          <button id="filter-btn-income" onclick="filterBills('income')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">Income</button>
+          <button id="filter-btn-expense" onclick="filterBills('expense')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">Expense</button>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-bill-history">Transaction History</h3>
+            <span class="text-xs font-medium text-zinc-400" id="bill-count-text">0 Records</span>
+          </div>
+          <div id="bills-history-container" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- 3. MAIL TAB -->
+      <div id="tab-mail" class="tab-content space-y-3 hidden">
+        <div class="text-xs font-semibold text-zinc-400 uppercase tracking-wider px-1" id="lbl-mail-header">Received Emails (HKD)</div>
+
+        <div id="mail-1" class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex flex-col gap-3 shadow-sm">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <i data-lucide="plane" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm">Cathay Pacific Flight</div>
+                <div class="text-xs text-zinc-400">Aug 18, 10:30 • HKG to NRT</div>
+              </div>
+            </div>
+            <span class="font-bold text-zinc-900 dark:text-zinc-100 text-sm">-HKD $4,500</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+            <button id="btn-cal-1" onclick="convertMailToCalendar('Cathay Flight to Tokyo', 18, 4500, 1)" class="py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition">
+              <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-emerald-600"></i> <span class="lbl-btn-cal-add">Add to Aug 18</span>
+            </button>
+            <button id="btn-exp-1" onclick="parseMailExpense(1, 4500, 'Cathay Pacific Flight')" class="py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition">
+              <i data-lucide="receipt" class="w-3.5 h-3.5"></i> <span class="lbl-btn-exp-add">Record Expense</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. SAVINGS TAB -->
+      <div id="tab-savings" class="tab-content space-y-4 hidden">
+        <div class="p-5 rounded-2xl bg-zinc-900 dark:bg-zinc-950 text-white shadow-sm space-y-4 border border-zinc-800">
+          <div class="flex justify-between items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <span class="text-xs text-zinc-400 font-medium block" id="lbl-net-balance">General Net Balance (HKD)</span>
+              <div class="text-2xl sm:text-3xl font-bold mt-1 break-all" id="net-savings-total">HKD $0.00</div>
+            </div>
+            <button onclick="openTransactionModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-semibold active:scale-95 transition flex items-center gap-1.5 shrink-0">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="lbl-btn-inc-exp">Income / Spend</span>
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-3 text-xs">
+            <div class="min-w-0">
+              <span class="text-zinc-400 block truncate" id="lbl-total-income">Total Income Added:</span>
+              <strong id="total-saved-text" class="text-emerald-400 text-xs sm:text-sm break-all">HKD $0.00</strong>
+            </div>
+            <div class="min-w-0">
+              <span class="text-zinc-400 block truncate" id="lbl-total-expenses">Total Expenses:</span>
+              <strong id="total-exp-text" class="text-rose-400 text-xs sm:text-sm break-all">HKD $0.00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-targets-title">Savings Targets (HKD)</h3>
+            <button onclick="openAddTargetModal()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span id="lbl-btn-new-target">New Target</span>
+            </button>
+          </div>
+
+          <div id="targets-container" class="space-y-3"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- TRANSACTION MODAL -->
+    <div id="transaction-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center hidden">
+      <div class="w-full max-w-md bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-t-3xl p-6 space-y-4">
+        <div class="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-3">
+          <h3 class="font-bold text-base" id="modal-tx-title">New Transaction</h3>
+          <button onclick="closeTransactionModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+          <button id="type-btn-save" onclick="setTxType('save')" class="py-2 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm transition">Add Income / Savings (+)</button>
+          <button id="type-btn-spend" onclick="setTxType('spend')" class="py-2 text-xs font-semibold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 transition">Add Expense (-)</button>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-note">Description / Note</label>
+          <input type="text" id="tx-note" placeholder="e.g. Salary, Dinner, Travel" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
+        </div>
+
+        <div id="target-select-wrapper">
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="target-select-label">Select Target</label>
+          <select id="tx-target-select" class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-medium text-zinc-800 dark:text-zinc-200 focus:outline-none">
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-amount">Amount (HKD $)</label>
+          <input type="number" id="tx-amount" placeholder="e.g. 1000" class="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl font-bold text-xl focus:outline-none">
+        </div>
+
+        <button onclick="submitTransaction()" class="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-semibold active:scale-95 transition" id="btn-confirm-entry">
+          Confirm Entry
+        </button>
+      </div>
+    </div>
+
+    <!-- TARGET MODAL -->
+    <div id="target-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center hidden">
+      <div class="w-full max-w-md bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-t-3xl p-6 space-y-4">
+        <div class="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-3">
+          <h3 class="font-bold text-base" id="modal-target-title">Create New Savings Target</h3>
+          <button onclick="closeAddTargetModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-title">Target Title</label>
+          <input type="text" id="target-title" placeholder="e.g. Japan Travel Fund" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-goal">Target Goal Amount (HKD $)</label>
+          <input type="number" id="target-amount" placeholder="e.g. 20000" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold focus:outline-none">
+        </div>
+
+        <button onclick="submitNewTarget()" class="w-full py-3 bg-emerald-600 text-white rounded-xl text-sm font-semibold active:scale-95 transition" id="btn-create-goal">
+          Create Goal
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav id="app-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex justify-around items-center z-30 transition-colors">
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex flex-col items-center gap-1 text-emerald-600 dark:text-emerald-400">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium" id="nav-lbl-calendar">Calendar</span>
+      </button>
+
+      <button onclick="switchTab('bills')" id="nav-bills" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+        <i data-lucide="receipt" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium" id="nav-lbl-bills">Bills</span>
+      </button>
+
+      <button onclick="switchTab('mail')" id="nav-mail" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+        <i data-lucide="mail" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium" id="nav-lbl-mail">Mail</span>
+      </button>
+
+      <button onclick="switchTab('savings')" id="nav-savings" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+        <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium" id="nav-lbl-savings">Savings</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let currentMonthIndex = 7;
+    let currentYear = 2026;
+    let selectedDay = 18;
+    let activeTxType = 'save';
+    let currentTheme = 'light';
+    let currentLang = 'en';
+    let activeBillFilter = 'all';
+    const baseBalance = 20500;
+
+    let state = {
+      totalSavingsAdded: 0,
+      expenses: 0,
+      targets: [],
+      billsHistory: []
+    };
+
+    let calendarEvents = {};
+
+    const i18n = {
+      en: {
+        titles: { calendar: 'My Calendar', bills: 'Bills & History', mail: 'Mail & Invoices', savings: 'Savings & Budget' },
+        nav: { calendar: 'Calendar', bills: 'Bills', mail: 'Mail', savings: 'Savings' },
+        weeks: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        labels: {
+          tapDate: 'Tap date to switch view',
+          noEvents: 'No events scheduled for this day',
+          receivedMails: 'Received Emails (HKD)',
+          addCal: 'Add to Aug 18',
+          recExp: 'Record Expense',
+          netBalance: 'General Net Balance (HKD)',
+          incomeSpend: 'Income / Spend',
+          totalIncome: 'Total Income Added:',
+          totalExpenses: 'Total Expenses:',
+          savingsTargets: 'Savings Targets (HKD)',
+          newTarget: 'New Target',
+          noTargets: 'No active targets. Click "New Target" to add one!',
+          goal: 'Goal:',
+          history: 'Transaction History',
+          records: 'Records',
+          noBills: 'No transaction history available.'
+        },
+        modals: {
+          newTx: 'New Transaction',
+          addInc: 'Add Income / Savings (+)',
+          addExp: 'Add Expense (-)',
+          note: 'Description / Note',
+          selectTarget: 'Select Target',
+          amount: 'Amount (HKD $)',
+          confirm: 'Confirm Entry',
+          newTargetTitle: 'Create New Savings Target',
+          targetTitle: 'Target Title',
+          targetGoal: 'Target Goal Amount (HKD $)',
+          createGoal: 'Create Goal'
+        }
+      },
+      zh: {
+        titles: { calendar: '我的日曆', bills: '帳單與明細', mail: '郵件與帳單', savings: '儲蓄與預算' },
+        nav: { calendar: '日曆', bills: '帳單', mail: '郵件', savings: '儲蓄' },
+        weeks: ['日', '一', '二', '三', '四', '五', '六'],
+        months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        labels: {
+          tapDate: '點擊日期切換檢視',
+          noEvents: '當天沒有安排任何行程',
+          receivedMails: '收到的郵件 (HKD)',
+          addCal: '加入至 8月18日',
+          recExp: '記錄開支',
+          netBalance: '總淨資產餘額 (HKD)',
+          incomeSpend: '收入 / 開支',
+          totalIncome: '已加入總收入:',
+          totalExpenses: '總開支:',
+          savingsTargets: '儲蓄目標 (HKD)',
+          newTarget: '新增目標',
+          noTargets: '暫無儲蓄目標，點擊「新增目標」創建！',
+          goal: '目標:',
+          history: '帳單交易記錄',
+          records: '筆記錄',
+          noBills: '尚無交易明細記錄。'
+        },
+        modals: {
+          newTx: '新增交易',
+          addInc: '新增收入 / 儲蓄 (+)',
+          addExp: '新增開支 (-)',
+          note: '項目描述 / 備註',
+          selectTarget: '選擇目標',
+          amount: '金額 (HKD $)',
+          confirm: '確認提交',
+          newTargetTitle: '創建新儲蓄目標',
+          targetTitle: '目標名稱',
+          targetGoal: '目標金額 (HKD $)',
+          createGoal: '創建目標'
+        }
+      }
+    };
+
+    // 從 API 載入伺服器端資料
+    async function initData() {
+      try {
+        const res = await fetch('/api/init-data');
+        const data = await res.json();
+
+        state.billsHistory = data.billsHistory || [];
+        state.targets = data.targets || [];
+
+        // 計算總收支
+        state.totalSavingsAdded = state.billsHistory
+          .filter(b => b.type === 'income')
+          .reduce((sum, b) => sum + b.amount, 0);
+
+        state.expenses = state.billsHistory
+          .filter(b => b.type === 'expense')
+          .reduce((sum, b) => sum + b.amount, 0);
+
+        // 重構日曆行程
+        calendarEvents = {};
+        (data.events || []).forEach(evt => {
+          if (!calendarEvents[evt.day]) calendarEvents[evt.day] = [];
+          calendarEvents[evt.day].push(evt);
+        });
+
+        updateUI();
+        renderCalendar();
+        renderDayEvents(selectedDay);
+        renderBillsHistory();
+      } catch (err) {
+        console.error("Failed to load initial data from server:", err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initData);
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('theme-icon');
+
+      if (currentTheme === 'light') {
+        currentTheme = 'dark';
+        html.classList.add('dark');
+        icon.setAttribute('data-lucide', 'sun');
+      } else {
+        currentTheme = 'light';
+        html.classList.remove('dark');
+        icon.setAttribute('data-lucide', 'moon');
+      }
+      
+      renderCalendar();
+      renderBillsHistory();
+      updateUI();
+      lucide.createIcons();
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'zh' : 'en';
+      document.getElementById('lang-btn').innerText = currentLang === 'en' ? '繁體中文' : 'English';
+      
+      const activeTab = document.querySelector('.tab-content:not(.hidden)').id.replace('tab-', '');
+      document.getElementById('page-title').innerText = i18n[currentLang].titles[activeTab];
+
+      document.getElementById('nav-lbl-calendar').innerText = i18n[currentLang].nav.calendar;
+      document.getElementById('nav-lbl-bills').innerText = i18n[currentLang].nav.bills;
+      document.getElementById('nav-lbl-mail').innerText = i18n[currentLang].nav.mail;
+      document.getElementById('nav-lbl-savings').innerText = i18n[currentLang].nav.savings;
+
+      const weekHeaders = document.getElementById('calendar-week-headers');
+      weekHeaders.innerHTML = i18n[currentLang].weeks.map(w => `<div>${w}</div>`).join('');
+      document.getElementById('lbl-tap-date').innerText = i18n[currentLang].labels.tapDate;
+
+      document.getElementById('lbl-mail-header').innerText = i18n[currentLang].labels.receivedMails;
+      document.querySelectorAll('.lbl-btn-cal-add').forEach(el => el.innerText = i18n[currentLang].labels.addCal);
+      document.querySelectorAll('.lbl-btn-exp-add').forEach(el => el.innerText = i18n[currentLang].labels.recExp);
+      document.getElementById('lbl-net-balance').innerText = i18n[currentLang].labels.netBalance;
+      document.getElementById('lbl-btn-inc-exp').innerText = i18n[currentLang].labels.incomeSpend;
+      document.getElementById('lbl-total-income').innerText = i18n[currentLang].labels.totalIncome;
+      document.getElementById('lbl-total-expenses').innerText = i18n[currentLang].labels.totalExpenses;
+      document.getElementById('lbl-targets-title').innerText = i18n[currentLang].labels.savingsTargets;
+      document.getElementById('lbl-btn-new-target').innerText = i18n[currentLang].labels.newTarget;
+      document.getElementById('lbl-bill-history').innerText = i18n[currentLang].labels.history;
+
+      document.getElementById('modal-tx-title').innerText = i18n[currentLang].modals.newTx;
+      document.getElementById('type-btn-save').innerText = i18n[currentLang].modals.addInc;
+      document.getElementById('type-btn-spend').innerText = i18n[currentLang].modals.addExp;
+      document.getElementById('lbl-tx-note').innerText = i18n[currentLang].modals.note;
+      document.getElementById('target-select-label').innerText = i18n[currentLang].modals.selectTarget;
+      document.getElementById('lbl-tx-amount').innerText = i18n[currentLang].modals.amount;
+      document.getElementById('btn-confirm-entry').innerText = i18n[currentLang].modals.confirm;
+      document.getElementById('modal-target-title').innerText = i18n[currentLang].modals.newTargetTitle;
+      document.getElementById('lbl-target-title').innerText = i18n[currentLang].modals.targetTitle;
+      document.getElementById('lbl-target-goal').innerText = i18n[currentLang].modals.targetGoal;
+      document.getElementById('btn-create-goal').innerText = i18n[currentLang].modals.createGoal;
+
+      renderCalendar();
+      renderDayEvents(selectedDay);
+      updateUI();
+      renderBillsHistory();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('text-emerald-600', 'dark:text-emerald-400');
+        el.classList.add('text-zinc-400');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      activeNav.classList.add('text-emerald-600', 'dark:text-emerald-400');
+      activeNav.classList.remove('text-zinc-400');
+      
+      document.getElementById('page-title').innerText = i18n[currentLang].titles[tabId];
+      if (tabId === 'bills') renderBillsHistory();
+    }
+
+    function changeMonth(delta) {
+      currentMonthIndex += delta;
+      if (currentMonthIndex > 11) {
+        currentMonthIndex = 0;
+        currentYear++;
+      } else if (currentMonthIndex < 0) {
+        currentMonthIndex = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      document.getElementById('month-display').innerText = `${i18n[currentLang].months[currentMonthIndex]} ${currentYear}`;
+      document.getElementById('header-date').innerText = `${currentYear} / ${String(currentMonthIndex + 1).padStart(2, '0')}`;
+      
+      const grid = document.getElementById('calendar-days-grid');
+      grid.innerHTML = '';
+
+      for (let p = 26; p <= 31; p++) {
+        grid.innerHTML += `<div class="text-zinc-300 dark:text-zinc-600 py-1.5">${p}</div>`;
+      }
+
+      for (let day = 1; day <= 31; day++) {
+        const isToday = (day === selectedDay && currentMonthIndex === 7);
+        const hasEvents = calendarEvents[day] && calendarEvents[day].length > 0;
+
+        let cellClass = "day-cell py-1.5 flex flex-col items-center justify-center relative rounded-full ";
+        if (isToday) {
+          cellClass += "bg-emerald-600 text-white font-bold shadow-sm";
+        } else {
+          cellClass += "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200";
+        }
+
+        const dot = hasEvents && !isToday ? `<span class="w-1 h-1 bg-amber-500 rounded-full absolute bottom-1"></span>` : '';
+
+        grid.innerHTML += `
+          <div onclick="selectDay(${day})" class="${cellClass}">
+            <span>${day}</span>
+            ${dot}
+          </div>
+        `;
+      }
+    }
+
+    function selectDay(day) {
+      selectedDay = day;
+      renderCalendar();
+      renderDayEvents(day);
+    }
+
+    function renderDayEvents(day) {
+      document.getElementById('selected-date-title').innerText = `${i18n[currentLang].months[currentMonthIndex]} ${day} ${currentLang === 'zh' ? '日行程' : 'Agenda'}`;
+      const container = document.getElementById('day-events-container');
+      container.innerHTML = '';
+
+      const events = calendarEvents[day] || [];
+
+      if (events.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl text-center text-zinc-400 text-xs">
+            ${i18n[currentLang].labels.noEvents}
+          </div>
+        `;
+        return;
+      }
+
+      events.forEach(evt => {
+        const costTag = evt.cost ? `<span class="text-xs font-bold text-amber-600 dark:text-amber-400">-HKD $${evt.cost}</span>` : `<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">${evt.tag || 'Event'}</span>`;
+        
+        container.innerHTML += `
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500 shadow-sm">
+            <div>
+              <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm">${evt.title}</div>
+              <div class="text-xs text-zinc-400 mt-1">${evt.time}</div>
+            </div>
+            ${costTag}
+          </div>
+        `;
+      });
+    }
+
+    async function convertMailToCalendar(title, day, cost, mailId) {
+      const payload = { day, month: currentMonthIndex + 1, year: currentYear, title, time: 'All Day', cost, tag: 'Mail Import' };
+      
+      try {
+        await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!calendarEvents[day]) calendarEvents[day] = [];
+        calendarEvents[day].push(payload);
+
+        const calBtn = document.getElementById(`btn-cal-${mailId}`);
+        if (calBtn) {
+          calBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Added`;
+          calBtn.disabled = true;
+          calBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          lucide.createIcons();
+        }
+
+        selectDay(day);
+        switchTab('calendar');
+      } catch (e) {
+        console.error("Failed to add event:", e);
+      }
+    }
+
+    async function parseMailExpense(id, amount, note) {
+      const expBtn = document.getElementById(`btn-exp-${id}`);
+      if (expBtn && !expBtn.disabled) {
+        await recordGeneralExpense(amount, note || 'Mail Invoice');
+        expBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Recorded`;
+        expBtn.disabled = true;
+        expBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        lucide.createIcons();
+      }
+    }
+
+    function filterBills(filter) {
+      activeBillFilter = filter;
+      document.querySelectorAll('#tab-bills button[id^="filter-btn-"]').forEach(btn => {
+        btn.className = 'flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition';
+      });
+
+      const activeBtn = document.getElementById(`filter-btn-${filter}`);
+      activeBtn.className = 'flex-1 py-1.5 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm transition';
+
+      renderBillsHistory();
+    }
+
+    function renderBillsHistory() {
+      const container = document.getElementById('bills-history-container');
+      container.innerHTML = '';
+
+      let filtered = state.billsHistory;
+      if (activeBillFilter === 'income') filtered = filtered.filter(b => b.type === 'income');
+      if (activeBillFilter === 'expense') filtered = filtered.filter(b => b.type === 'expense');
+
+      document.getElementById('bill-count-text').innerText = `${filtered.length} ${i18n[currentLang].labels.records}`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl text-center text-zinc-400 text-xs">
+            ${i18n[currentLang].labels.noBills}
+          </div>
+        `;
+        return;
+      }
+
+      filtered.slice().forEach(bill => {
+        const isInc = bill.type === 'income';
+        const color = isInc ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400';
+        const sign = isInc ? '+' : '-';
+        const badgeBg = isInc ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950 text-rose-500 dark:text-rose-400';
+
+        container.innerHTML += `
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3.5 rounded-2xl flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl ${badgeBg} flex items-center justify-center shrink-0">
+                <i data-lucide="${isInc ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${bill.note || (isInc ? 'Income' : 'Expense')}</div>
+                <div class="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
+                  <span>${bill.date}</span>
+                  <span>•</span>
+                  <span class="truncate">${bill.targetName || 'General Balance'}</span>
+                </div>
+              </div>
+            </div>
+            <span class="font-bold text-sm ${color} shrink-0 ml-2">${sign}HKD $${bill.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+          </div>
+        `;
+      });
+
+      lucide.createIcons();
+    }
+
+    function openTransactionModal() {
+      const select = document.getElementById('tx-target-select');
+      select.innerHTML = '';
+      
+      const activeTargets = state.targets;
+
+      if (activeTargets.length === 0) {
+        select.innerHTML = `<option value="general">General Savings (No Active Target)</option>`;
+      } else {
+        select.innerHTML = `<option value="general">General Savings Only</option>`;
+        activeTargets.forEach(t => {
+          select.innerHTML += `<option value="${t.id}">${t.title} ${t.isDone ? '(DONE)' : ''}</option>`;
+        });
+      }
+
+      document.getElementById('transaction-modal').classList.remove('hidden');
+    }
+
+    function closeTransactionModal() {
+      document.getElementById('transaction-modal').classList.add('hidden');
+      document.getElementById('tx-amount').value = '';
+      document.getElementById('tx-note').value = '';
+    }
+
+    function setTxType(type) {
+      activeTxType = type;
+      const btnSave = document.getElementById('type-btn-save');
+      const btnSpend = document.getElementById('type-btn-spend');
+
+      if (type === 'save') {
+        btnSave.className = 'py-2 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm transition';
+        btnSpend.className = 'py-2 text-xs font-semibold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 transition';
+      } else {
+        btnSpend.className = 'py-2 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-700 text-rose-600 dark:text-rose-400 shadow-sm transition';
+        btnSave.className = 'py-2 text-xs font-semibold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 transition';
+      }
+    }
+
+    async function addBillRecord(type, amount, note, targetName) {
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      
+      const payload = { type, amount, note, targetName, date: dateStr };
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const saved = await res.json();
+      state.billsHistory.unshift(saved);
+    }
+
+    async function submitTransaction() {
+      const val = parseFloat(document.getElementById('tx-amount').value);
+      const note = document.getElementById('tx-note').value.trim() || (activeTxType === 'save' ? 'Income Deposit' : 'General Expense');
+
+      if (isNaN(val) || val <= 0) {
+        alert('Please enter a valid amount in HKD!');
+        return;
+      }
+
+      if (activeTxType === 'save') {
+        state.totalSavingsAdded += val;
+        const targetValue = document.getElementById('tx-target-select').value;
+        let targetObj = state.targets.find(t => t.id === parseInt(targetValue));
+
+        if (targetObj) {
+          targetObj.current = Math.min(targetObj.target, targetObj.current + val);
+          if (targetObj.current >= targetObj.target) targetObj.isDone = true;
+          
+          await fetch(`/api/targets/${targetObj.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ current: targetObj.current, isDone: targetObj.isDone })
+          });
+
+          await addBillRecord('income', val, note, targetObj.title);
+        } else {
+          await addBillRecord('income', val, note, 'General Balance');
+        }
+      } else {
+        await recordGeneralExpense(val, note);
+      }
+
+      updateUI();
+      closeTransactionModal();
+    }
+
+    async function recordGeneralExpense(val, note = 'Expense') {
+      state.expenses += val;
+      await addBillRecord('expense', val, note, 'General Balance');
+    }
+
+    async function removeTarget(id) {
+      if (!confirm('Are you sure you want to delete this target?')) return;
+
+      try {
+        await fetch(`/api/targets/${id}`, { method: 'DELETE' });
+        state.targets = state.targets.filter(t => t.id !== id);
+        updateUI();
+      } catch (err) {
+        console.error("Failed to delete target:", err);
+      }
+    }
+
+    function openAddTargetModal() {
+      document.getElementById('target-modal').classList.remove('hidden');
+    }
+
+    function closeAddTargetModal() {
+      document.getElementById('target-modal').classList.add('hidden');
+      document.getElementById('target-title').value = '';
+      document.getElementById('target-amount').value = '';
+    }
+
+    async function submitNewTarget() {
+      const title = document.getElementById('target-title').value.trim();
+      const amount = parseFloat(document.getElementById('target-amount').value);
+
+      if (!title || isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid title and amount!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/targets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, current: 0, target: amount, isDone: false })
+        });
+
+        const newTarget = await res.json();
+        state.targets.push(newTarget);
+
+        updateUI();
+        closeAddTargetModal();
+      } catch (err) {
+        console.error("Failed to create target:", err);
+      }
+    }
+
+    function updateUI() {
+      const netBalance = baseBalance + state.totalSavingsAdded - state.expenses;
+
+      document.getElementById('net-savings-total').innerText = `HKD $${netBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      document.getElementById('total-saved-text').innerText = `HKD $${state.totalSavingsAdded.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      document.getElementById('total-exp-text').innerText = `HKD $${state.expenses.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
+      const container = document.getElementById('targets-container');
+      container.innerHTML = '';
+
+      if (state.targets.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl text-center text-zinc-400 text-xs">
+            ${i18n[currentLang].labels.noTargets}
+          </div>
+        `;
+        return;
+      }
+
+      state.targets.forEach(t => {
+        const pct = Math.min(100, Math.round((t.current / t.target) * 100));
+        const cardBg = t.isDone ? 'bg-emerald-50/60 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800';
+        const doneBadge = t.isDone 
+          ? `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">DONE</span>` 
+          : `<span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">${pct}%</span>`;
+
+        container.innerHTML += `
+          <div class="${cardBg} border p-4 rounded-2xl space-y-3 shadow-sm">
+            <div class="flex justify-between items-center gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${t.title}</span>
+                ${doneBadge}
+              </div>
+              
+              <div class="flex items-center gap-2 text-zinc-400 shrink-0">
+                <button onclick="removeTarget(${t.id})" title="Delete Target Goal" class="hover:text-rose-500 p-1">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-emerald-600 h-full transition-all duration-300" style="width: ${pct}%;"></div>
+            </div>
+
+            <div class="flex justify-between text-xs text-zinc-400 gap-2">
+              <span>${i18n[currentLang].labels.goal} HKD $${t.target.toLocaleString()}</span>
+              <span class="truncate">HKD $${Math.round(t.current).toLocaleString()} / HKD $${t.target.toLocaleString()}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
