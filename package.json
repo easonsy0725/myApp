@@ -12,5 +12,5 @@
     "imap-simple": "^5.1.0",
     "mailparser": "^3.7.1",
     "sqlite3": "^5.1.7"
-    }   
+}   
 }

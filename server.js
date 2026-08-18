@@ -46,17 +46,19 @@ db.serialize(() => {
 });
 
 // IMAP 電子郵件檢查設定 (使用應用程式專用密碼)
-const imapConfig = {
+const config = {
   imap: {
-    user: process.env.EMAIL_USER || 'YOUR_APP_EMAIL@gmail.com',
-    password: process.env.EMAIL_PASSWORD || 'YOUR_APP_PASSWORD',
-    host: process.env.EMAIL_HOST || 'imap.gmail.com',
+    user: process.env.EMAIL_USER,
+    password: process.env.EMAIL_PASSWORD,
+    host: 'imap.gmail.com',
     port: 993,
     tls: true,
-    authTimeout: 3000
+    tlsOptions: {
+      rejectUnauthorized: false
+    },
+    authTimeout: 10000
   }
 };
-
 // 解析郵件內文並抓取 HKD 金額
 async function checkEmails() {
   if (!process.env.EMAIL_USER || process.env.EMAIL_USER.includes('YOUR_APP')) return;
