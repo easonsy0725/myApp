@@ -9,6 +9,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "imap-simple": "^5.1.0",
+    "mailparser": "^3.7.1",
     "sqlite3": "^5.1.7"
-  }
+    }   
 }

@@ -2,6 +2,8 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
+const imaps = require('imap-simple');
+const simpleParser = require('mailparser').simpleParser;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,11 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 初始化 SQLite 資料庫
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) console.error('Database connection error:', err);
-  else console.log(`Connected to SQLite database at ${DB_PATH}`);
-});
+const db = new sqlite3.Database(DB_PATH);
 
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS transactions (
@@ -47,6 +45,61 @@ db.serialize(() => {
   )`);
 });
 
+// IMAP 電子郵件檢查設定 (使用應用程式專用密碼)
+const imapConfig = {
+  imap: {
+    user: process.env.EMAIL_USER || 'YOUR_APP_EMAIL@gmail.com',
+    password: process.env.EMAIL_PASSWORD || 'YOUR_APP_PASSWORD',
+    host: process.env.EMAIL_HOST || 'imap.gmail.com',
+    port: 993,
+    tls: true,
+    authTimeout: 3000
+  }
+};
+
+// 解析郵件內文並抓取 HKD 金額
+async function checkEmails() {
+  if (!process.env.EMAIL_USER || process.env.EMAIL_USER.includes('YOUR_APP')) return;
+  
+  try {
+    const connection = await imaps.connect(imapConfig);
+    await connection.openBox('INBOX');
+
+    const searchCriteria = ['UNSEEN']; // 只讀取未讀郵件
+    const fetchOptions = { bodies: [''], markSeen: true };
+    const messages = await connection.search(searchCriteria, fetchOptions);
+
+    for (const item of messages) {
+      const all = item.parts.find(part => part.which === '');
+      const parsed = await simpleParser(all.body);
+      
+      const subject = parsed.subject || 'Receipt Email';
+      const text = parsed.text || '';
+
+      // 正則表達式匹配 HKD 格式，例如: HKD $500 或 HKD 500
+      const match = text.match(/HKD\s*\$?\s*([0-9]+(?:\.[0-9]{1,2})?)/i) || subject.match(/HKD\s*\$?\s*([0-9]+(?:\.[0-9]{1,2})?)/i);
+
+      if (match) {
+        const amount = parseFloat(match[1]);
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+        // 自動加入交易記錄
+        db.run(
+          `INSERT INTO transactions (type, amount, note, targetName, date) VALUES (?, ?, ?, ?, ?)`,
+          ['expense', amount, subject, 'Auto Mail Sync', dateStr]
+        );
+      }
+    }
+    connection.end();
+  } catch (err) {
+    console.error("Mail Check Error:", err.message);
+  }
+}
+
+// 每 10 分鐘自動檢查一次收件匣
+setInterval(checkEmails, 10 * 60 * 1000);
+
 // API 路由
 app.get('/api/init-data', (req, res) => {
   const data = {};
@@ -69,28 +122,28 @@ app.get('/api/init-data', (req, res) => {
 
 app.post('/api/transactions', (req, res) => {
   const { type, amount, note, targetName, date } = req.body;
-  const sql = `INSERT INTO transactions (type, amount, note, targetName, date) VALUES (?, ?, ?, ?, ?)`;
-  db.run(sql, [type, amount, note, targetName, date], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID, type, amount, note, targetName, date });
+  db.run(`INSERT INTO transactions (type, amount, note, targetName, date) VALUES (?, ?, ?, ?, ?)`,
+    [type, amount, note, targetName, date], function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, type, amount, note, targetName, date });
   });
 });
 
 app.post('/api/targets', (req, res) => {
   const { title, current, target, isDone } = req.body;
-  const sql = `INSERT INTO targets (title, current, target, isDone) VALUES (?, ?, ?, ?)`;
-  db.run(sql, [title, current || 0, target, isDone ? 1 : 0], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID, title, current: current || 0, target, isDone: Boolean(isDone) });
+  db.run(`INSERT INTO targets (title, current, target, isDone) VALUES (?, ?, ?, ?)`,
+    [title, current || 0, target, isDone ? 1 : 0], function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, title, current: current || 0, target, isDone: Boolean(isDone) });
   });
 });
 
 app.put('/api/targets/:id', (req, res) => {
   const { current, isDone } = req.body;
-  const sql = `UPDATE targets SET current = ?, isDone = ? WHERE id = ?`;
-  db.run(sql, [current, isDone ? 1 : 0, req.params.id], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ updated: this.changes });
+  db.run(`UPDATE targets SET current = ?, isDone = ? WHERE id = ?`,
+    [current, isDone ? 1 : 0, req.params.id], function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ updated: this.changes });
   });
 });
 
@@ -103,10 +156,10 @@ app.delete('/api/targets/:id', (req, res) => {
 
 app.post('/api/events', (req, res) => {
   const { day, month, year, title, time, cost, tag } = req.body;
-  const sql = `INSERT INTO calendar_events (day, month, year, title, time, cost, tag) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-  db.run(sql, [day, month, year, title, time, cost, tag], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID, day, month, year, title, time, cost, tag });
+  db.run(`INSERT INTO calendar_events (day, month, year, title, time, cost, tag) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [day, month, year, title, time, cost, tag], function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, day, month, year, title, time, cost, tag });
   });
 });
 

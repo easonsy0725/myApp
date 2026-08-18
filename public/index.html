@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -24,16 +24,16 @@
 
   <div id="app-container" class="w-full max-w-md bg-zinc-50 dark:bg-zinc-950 min-h-screen flex flex-col relative pb-safe border-x border-zinc-200 dark:border-zinc-800 transition-colors">
     
-    <!-- Header -->
+    <!-- 頁首 Header -->
     <header id="app-header" class="px-5 pt-6 pb-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-20 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center transition-colors">
       <div>
         <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase" id="header-date">2026 / 08</span>
-        <h1 id="page-title" class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">My Calendar</h1>
+        <h1 id="page-title" class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-0.5">我的日曆</h1>
       </div>
       
       <div class="flex items-center gap-2">
         <button onclick="toggleLanguage()" id="lang-btn" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition">
-          繁體中文
+          English
         </button>
         <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition">
           <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
@@ -41,10 +41,10 @@
       </div>
     </header>
 
-    <!-- Main View -->
+    <!-- 主要內容區 -->
     <main class="p-4 flex-1 space-y-4">
 
-      <!-- 1. CALENDAR TAB -->
+      <!-- 1. 日曆分頁 -->
       <div id="tab-calendar" class="tab-content space-y-4">
         <div id="calendar-card" class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm transition-colors">
           <div class="flex justify-between items-center mb-4">
@@ -60,7 +60,7 @@
           </div>
 
           <div id="calendar-week-headers" class="grid grid-cols-7 text-center text-xs font-semibold text-zinc-400 mb-3">
-            <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
           </div>
 
           <div id="calendar-days-grid" class="grid grid-cols-7 text-center text-sm gap-y-2 text-zinc-700 dark:text-zinc-200 font-medium"></div>
@@ -68,79 +68,60 @@
 
         <div class="space-y-2">
           <div class="flex justify-between items-center px-1">
-            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="selected-date-title">August 18 Agenda</h3>
-            <span class="text-[11px] text-zinc-400" id="lbl-tap-date">Tap date to switch view</span>
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="selected-date-title">8月18日 行程</h3>
+            <span class="text-[11px] text-zinc-400" id="lbl-tap-date">點擊日期切換檢視</span>
           </div>
           <div id="day-events-container" class="space-y-2"></div>
         </div>
       </div>
 
-      <!-- 2. BILLS TAB -->
+      <!-- 2. 帳單分頁 -->
       <div id="tab-bills" class="tab-content space-y-4 hidden">
         <div class="flex gap-2 p-1 bg-zinc-200/70 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold">
-          <button id="filter-btn-all" onclick="filterBills('all')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm transition">All</button>
-          <button id="filter-btn-income" onclick="filterBills('income')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">Income</button>
-          <button id="filter-btn-expense" onclick="filterBills('expense')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">Expense</button>
+          <button id="filter-btn-all" onclick="filterBills('all')" class="flex-1 py-1.5 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm transition">全部</button>
+          <button id="filter-btn-income" onclick="filterBills('income')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">收入</button>
+          <button id="filter-btn-expense" onclick="filterBills('expense')" class="flex-1 py-1.5 rounded-lg text-zinc-500 dark:text-zinc-400 transition">支出</button>
         </div>
 
         <div class="space-y-2">
           <div class="flex justify-between items-center px-1">
-            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-bill-history">Transaction History</h3>
-            <span class="text-xs font-medium text-zinc-400" id="bill-count-text">0 Records</span>
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-bill-history">交易記錄</h3>
+            <span class="text-xs font-medium text-zinc-400" id="bill-count-text">0 筆記錄</span>
           </div>
           <div id="bills-history-container" class="space-y-2"></div>
         </div>
       </div>
 
-      <!-- 3. MAIL TAB -->
+      <!-- 3. 郵件分頁 -->
       <div id="tab-mail" class="tab-content space-y-3 hidden">
-        <div class="text-xs font-semibold text-zinc-400 uppercase tracking-wider px-1" id="lbl-mail-header">Received Emails (HKD)</div>
-
-        <div id="mail-1" class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex flex-col gap-3 shadow-sm">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                <i data-lucide="plane" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm">Cathay Pacific Flight</div>
-                <div class="text-xs text-zinc-400">Aug 18, 10:30 • HKG to NRT</div>
-              </div>
-            </div>
-            <span class="font-bold text-zinc-900 dark:text-zinc-100 text-sm">-HKD $4,500</span>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800">
-            <button id="btn-cal-1" onclick="convertMailToCalendar('Cathay Flight to Tokyo', 18, 4500, 1)" class="py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition">
-              <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-emerald-600"></i> <span class="lbl-btn-cal-add">Add to Aug 18</span>
-            </button>
-            <button id="btn-exp-1" onclick="parseMailExpense(1, 4500, 'Cathay Pacific Flight')" class="py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-medium flex items-center justify-center gap-1 active:scale-95 transition">
-              <i data-lucide="receipt" class="w-3.5 h-3.5"></i> <span class="lbl-btn-exp-add">Record Expense</span>
-            </button>
+        <div class="text-xs font-semibold text-zinc-400 uppercase tracking-wider px-1" id="lbl-mail-header">自動同步郵件帳單 (HKD)</div>
+        <div id="mail-list-container" class="space-y-3">
+          <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl text-center text-zinc-400 text-xs">
+            尚未收到任何同步郵件。請設定自動轉寄至你指定的專用信箱。
           </div>
         </div>
       </div>
 
-      <!-- 4. SAVINGS TAB -->
+      <!-- 4. 儲蓄分頁 -->
       <div id="tab-savings" class="tab-content space-y-4 hidden">
         <div class="p-5 rounded-2xl bg-zinc-900 dark:bg-zinc-950 text-white shadow-sm space-y-4 border border-zinc-800">
           <div class="flex justify-between items-start gap-3">
             <div class="flex-1 min-w-0">
-              <span class="text-xs text-zinc-400 font-medium block" id="lbl-net-balance">General Net Balance (HKD)</span>
+              <span class="text-xs text-zinc-400 font-medium block" id="lbl-net-balance">總淨資產餘額 (HKD)</span>
               <div class="text-2xl sm:text-3xl font-bold mt-1 break-all" id="net-savings-total">HKD $0.00</div>
             </div>
             <button onclick="openTransactionModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-semibold active:scale-95 transition flex items-center gap-1.5 shrink-0">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="lbl-btn-inc-exp">Income / Spend</span>
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="lbl-btn-inc-exp">收入 / 支出</span>
             </button>
           </div>
           
           <div class="grid grid-cols-2 gap-4 border-t border-zinc-800 pt-3 text-xs">
             <div class="min-w-0">
-              <span class="text-zinc-400 block truncate" id="lbl-total-income">Total Income Added:</span>
+              <span class="text-zinc-400 block truncate" id="lbl-total-income">已加入總收入:</span>
               <strong id="total-saved-text" class="text-emerald-400 text-xs sm:text-sm break-all">HKD $0.00</strong>
             </div>
             <div class="min-w-0">
-              <span class="text-zinc-400 block truncate" id="lbl-total-expenses">Total Expenses:</span>
+              <span class="text-zinc-400 block truncate" id="lbl-total-expenses">總開支:</span>
               <strong id="total-exp-text" class="text-rose-400 text-xs sm:text-sm break-all">HKD $0.00</strong>
             </div>
           </div>
@@ -148,9 +129,9 @@
 
         <div class="space-y-3">
           <div class="flex justify-between items-center px-1">
-            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-targets-title">Savings Targets (HKD)</h3>
+            <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider" id="lbl-targets-title">儲蓄目標 (HKD)</h3>
             <button onclick="openAddTargetModal()" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span id="lbl-btn-new-target">New Target</span>
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span id="lbl-btn-new-target">新增目標</span>
             </button>
           </div>
 
@@ -160,89 +141,89 @@
 
     </main>
 
-    <!-- TRANSACTION MODAL -->
+    <!-- 交易彈出視窗 -->
     <div id="transaction-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center hidden">
       <div class="w-full max-w-md bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-t-3xl p-6 space-y-4">
         <div class="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-3">
-          <h3 class="font-bold text-base" id="modal-tx-title">New Transaction</h3>
+          <h3 class="font-bold text-base" id="modal-tx-title">新增交易</h3>
           <button onclick="closeTransactionModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
         <div class="grid grid-cols-2 gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
-          <button id="type-btn-save" onclick="setTxType('save')" class="py-2 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm transition">Add Income / Savings (+)</button>
-          <button id="type-btn-spend" onclick="setTxType('spend')" class="py-2 text-xs font-semibold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 transition">Add Expense (-)</button>
+          <button id="type-btn-save" onclick="setTxType('save')" class="py-2 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm transition">新增收入 / 儲蓄 (+)</button>
+          <button id="type-btn-spend" onclick="setTxType('spend')" class="py-2 text-xs font-semibold rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 transition">新增開支 (-)</button>
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-note">Description / Note</label>
-          <input type="text" id="tx-note" placeholder="e.g. Salary, Dinner, Travel" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-note">項目描述 / 備註</label>
+          <input type="text" id="tx-note" placeholder="例：薪水、晚餐、機票" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
         </div>
 
         <div id="target-select-wrapper">
-          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="target-select-label">Select Target</label>
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="target-select-label">選擇歸屬目標</label>
           <select id="tx-target-select" class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-medium text-zinc-800 dark:text-zinc-200 focus:outline-none">
           </select>
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-amount">Amount (HKD $)</label>
-          <input type="number" id="tx-amount" placeholder="e.g. 1000" class="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl font-bold text-xl focus:outline-none">
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-tx-amount">金額 (HKD $)</label>
+          <input type="number" id="tx-amount" placeholder="例：1000" class="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl font-bold text-xl focus:outline-none">
         </div>
 
         <button onclick="submitTransaction()" class="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-semibold active:scale-95 transition" id="btn-confirm-entry">
-          Confirm Entry
+          確認提交
         </button>
       </div>
     </div>
 
-    <!-- TARGET MODAL -->
+    <!-- 新增目標彈出視窗 -->
     <div id="target-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center hidden">
       <div class="w-full max-w-md bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-t-3xl p-6 space-y-4">
         <div class="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-3">
-          <h3 class="font-bold text-base" id="modal-target-title">Create New Savings Target</h3>
+          <h3 class="font-bold text-base" id="modal-target-title">創建新儲蓄目標</h3>
           <button onclick="closeAddTargetModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-title">Target Title</label>
-          <input type="text" id="target-title" placeholder="e.g. Japan Travel Fund" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-title">目標名稱</label>
+          <input type="text" id="target-title" placeholder="例：日本旅遊基金" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none">
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-goal">Target Goal Amount (HKD $)</label>
-          <input type="number" id="target-amount" placeholder="e.g. 20000" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold focus:outline-none">
+          <label class="text-xs font-semibold text-zinc-400 uppercase mb-1 block" id="lbl-target-goal">目標金額 (HKD $)</label>
+          <input type="number" id="target-amount" placeholder="例：20000" class="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm font-bold focus:outline-none">
         </div>
 
         <button onclick="submitNewTarget()" class="w-full py-3 bg-emerald-600 text-white rounded-xl text-sm font-semibold active:scale-95 transition" id="btn-create-goal">
-          Create Goal
+          創建目標
         </button>
       </div>
     </div>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- 底部導覽列 -->
     <nav id="app-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex justify-around items-center z-30 transition-colors">
       <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex flex-col items-center gap-1 text-emerald-600 dark:text-emerald-400">
         <i data-lucide="calendar" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium" id="nav-lbl-calendar">Calendar</span>
+        <span class="text-[10px] font-medium" id="nav-lbl-calendar">日曆</span>
       </button>
 
       <button onclick="switchTab('bills')" id="nav-bills" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
         <i data-lucide="receipt" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium" id="nav-lbl-bills">Bills</span>
+        <span class="text-[10px] font-medium" id="nav-lbl-bills">帳單</span>
       </button>
 
       <button onclick="switchTab('mail')" id="nav-mail" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
         <i data-lucide="mail" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium" id="nav-lbl-mail">Mail</span>
+        <span class="text-[10px] font-medium" id="nav-lbl-mail">郵件</span>
       </button>
 
       <button onclick="switchTab('savings')" id="nav-savings" class="nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
         <i data-lucide="piggy-bank" class="w-5 h-5"></i>
-        <span class="text-[10px] font-medium" id="nav-lbl-savings">Savings</span>
+        <span class="text-[10px] font-medium" id="nav-lbl-savings">儲蓄</span>
       </button>
     </nav>
 
@@ -256,9 +237,9 @@
     let selectedDay = 18;
     let activeTxType = 'save';
     let currentTheme = 'light';
-    let currentLang = 'en';
+    let currentLang = 'zh';
     let activeBillFilter = 'all';
-    const baseBalance = 20500;
+    const baseBalance = 0; // 預設餘額歸零
 
     let state = {
       totalSavingsAdded: 0,
@@ -278,9 +259,7 @@
         labels: {
           tapDate: 'Tap date to switch view',
           noEvents: 'No events scheduled for this day',
-          receivedMails: 'Received Emails (HKD)',
-          addCal: 'Add to Aug 18',
-          recExp: 'Record Expense',
+          receivedMails: 'Synced Emails (HKD)',
           netBalance: 'General Net Balance (HKD)',
           incomeSpend: 'Income / Spend',
           totalIncome: 'Total Income Added:',
@@ -315,18 +294,16 @@
         labels: {
           tapDate: '點擊日期切換檢視',
           noEvents: '當天沒有安排任何行程',
-          receivedMails: '收到的郵件 (HKD)',
-          addCal: '加入至 8月18日',
-          recExp: '記錄開支',
+          receivedMails: '自動同步郵件帳單 (HKD)',
           netBalance: '總淨資產餘額 (HKD)',
-          incomeSpend: '收入 / 開支',
+          incomeSpend: '收入 / 支出',
           totalIncome: '已加入總收入:',
           totalExpenses: '總開支:',
           savingsTargets: '儲蓄目標 (HKD)',
           newTarget: '新增目標',
           noTargets: '暫無儲蓄目標，點擊「新增目標」創建！',
           goal: '目標:',
-          history: '帳單交易記錄',
+          history: '交易記錄',
           records: '筆記錄',
           noBills: '尚無交易明細記錄。'
         },
@@ -335,7 +312,7 @@
           addInc: '新增收入 / 儲蓄 (+)',
           addExp: '新增開支 (-)',
           note: '項目描述 / 備註',
-          selectTarget: '選擇目標',
+          selectTarget: '選擇歸屬目標',
           amount: '金額 (HKD $)',
           confirm: '確認提交',
           newTargetTitle: '創建新儲蓄目標',
@@ -346,7 +323,6 @@
       }
     };
 
-    // 從 API 載入伺服器端資料
     async function initData() {
       try {
         const res = await fetch('/api/init-data');
@@ -355,7 +331,6 @@
         state.billsHistory = data.billsHistory || [];
         state.targets = data.targets || [];
 
-        // 計算總收支
         state.totalSavingsAdded = state.billsHistory
           .filter(b => b.type === 'income')
           .reduce((sum, b) => sum + b.amount, 0);
@@ -364,7 +339,6 @@
           .filter(b => b.type === 'expense')
           .reduce((sum, b) => sum + b.amount, 0);
 
-        // 重構日曆行程
         calendarEvents = {};
         (data.events || []).forEach(evt => {
           if (!calendarEvents[evt.day]) calendarEvents[evt.day] = [];
@@ -376,7 +350,7 @@
         renderDayEvents(selectedDay);
         renderBillsHistory();
       } catch (err) {
-        console.error("Failed to load initial data from server:", err);
+        console.error("無法從伺服器載入資料:", err);
       }
     }
 
@@ -419,8 +393,6 @@
       document.getElementById('lbl-tap-date').innerText = i18n[currentLang].labels.tapDate;
 
       document.getElementById('lbl-mail-header').innerText = i18n[currentLang].labels.receivedMails;
-      document.querySelectorAll('.lbl-btn-cal-add').forEach(el => el.innerText = i18n[currentLang].labels.addCal);
-      document.querySelectorAll('.lbl-btn-exp-add').forEach(el => el.innerText = i18n[currentLang].labels.recExp);
       document.getElementById('lbl-net-balance').innerText = i18n[currentLang].labels.netBalance;
       document.getElementById('lbl-btn-inc-exp').innerText = i18n[currentLang].labels.incomeSpend;
       document.getElementById('lbl-total-income').innerText = i18n[currentLang].labels.totalIncome;
@@ -476,8 +448,8 @@
     }
 
     function renderCalendar() {
-      document.getElementById('month-display').innerText = `${i18n[currentLang].months[currentMonthIndex]} ${currentYear}`;
-      document.getElementById('header-date').innerText = `${currentYear} / ${String(currentMonthIndex + 1).padStart(2, '0')}`;
+      document.getElementById('month-display').innerText = `${i18n[currentLang].months[currentMonthIndex]}${currentYear}`;
+      document.getElementById('header-date').innerText = `${currentYear} /${String(currentMonthIndex + 1).padStart(2, '0')}`;
       
       const grid = document.getElementById('calendar-days-grid');
       grid.innerHTML = '';
@@ -501,8 +473,7 @@
 
         grid.innerHTML += `
           <div onclick="selectDay(${day})" class="${cellClass}">
-            <span>${day}</span>
-            ${dot}
+            <span>${day}</span>${dot}
           </div>
         `;
       }
@@ -515,7 +486,7 @@
     }
 
     function renderDayEvents(day) {
-      document.getElementById('selected-date-title').innerText = `${i18n[currentLang].months[currentMonthIndex]} ${day} ${currentLang === 'zh' ? '日行程' : 'Agenda'}`;
+      document.getElementById('selected-date-title').innerText = `${i18n[currentLang].months[currentMonthIndex]} ${day}${currentLang === 'zh' ? '日行程' : 'Agenda'}`;
       const container = document.getElementById('day-events-container');
       container.innerHTML = '';
 
@@ -531,7 +502,7 @@
       }
 
       events.forEach(evt => {
-        const costTag = evt.cost ? `<span class="text-xs font-bold text-amber-600 dark:text-amber-400">-HKD $${evt.cost}</span>` : `<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">${evt.tag || 'Event'}</span>`;
+        const costTag = evt.cost ? `<span class="text-xs font-bold text-amber-600 dark:text-amber-400">-HKD $${evt.cost}</span>` : `<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">${evt.tag || '行程'}</span>`;
         
         container.innerHTML += `
           <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500 shadow-sm">
@@ -543,45 +514,6 @@
           </div>
         `;
       });
-    }
-
-    async function convertMailToCalendar(title, day, cost, mailId) {
-      const payload = { day, month: currentMonthIndex + 1, year: currentYear, title, time: 'All Day', cost, tag: 'Mail Import' };
-      
-      try {
-        await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!calendarEvents[day]) calendarEvents[day] = [];
-        calendarEvents[day].push(payload);
-
-        const calBtn = document.getElementById(`btn-cal-${mailId}`);
-        if (calBtn) {
-          calBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Added`;
-          calBtn.disabled = true;
-          calBtn.classList.add('opacity-50', 'cursor-not-allowed');
-          lucide.createIcons();
-        }
-
-        selectDay(day);
-        switchTab('calendar');
-      } catch (e) {
-        console.error("Failed to add event:", e);
-      }
-    }
-
-    async function parseMailExpense(id, amount, note) {
-      const expBtn = document.getElementById(`btn-exp-${id}`);
-      if (expBtn && !expBtn.disabled) {
-        await recordGeneralExpense(amount, note || 'Mail Invoice');
-        expBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Recorded`;
-        expBtn.disabled = true;
-        expBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        lucide.createIcons();
-      }
     }
 
     function filterBills(filter) {
@@ -604,7 +536,7 @@
       if (activeBillFilter === 'income') filtered = filtered.filter(b => b.type === 'income');
       if (activeBillFilter === 'expense') filtered = filtered.filter(b => b.type === 'expense');
 
-      document.getElementById('bill-count-text').innerText = `${filtered.length} ${i18n[currentLang].labels.records}`;
+      document.getElementById('bill-count-text').innerText = `${filtered.length}${i18n[currentLang].labels.records}`;
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -628,15 +560,15 @@
                 <i data-lucide="${isInc ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i>
               </div>
               <div class="min-w-0">
-                <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${bill.note || (isInc ? 'Income' : 'Expense')}</div>
+                <div class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${bill.note || (isInc ? '收入' : '支出')}</div>
                 <div class="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
                   <span>${bill.date}</span>
                   <span>•</span>
-                  <span class="truncate">${bill.targetName || 'General Balance'}</span>
+                  <span class="truncate">${bill.targetName || '一般餘額'}</span>
                 </div>
               </div>
             </div>
-            <span class="font-bold text-sm ${color} shrink-0 ml-2">${sign}HKD $${bill.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            <span class="font-bold text-sm ${color} shrink-0 ml-2">${sign}HKD$${bill.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
           </div>
         `;
       });
@@ -651,11 +583,11 @@
       const activeTargets = state.targets;
 
       if (activeTargets.length === 0) {
-        select.innerHTML = `<option value="general">General Savings (No Active Target)</option>`;
+        select.innerHTML = `<option value="general">一般儲蓄 (無特定目標)</option>`;
       } else {
-        select.innerHTML = `<option value="general">General Savings Only</option>`;
+        select.innerHTML = `<option value="general">僅放入一般餘額</option>`;
         activeTargets.forEach(t => {
-          select.innerHTML += `<option value="${t.id}">${t.title} ${t.isDone ? '(DONE)' : ''}</option>`;
+          select.innerHTML += `<option value="${t.id}">${t.title}${t.isDone ? '(已達成)' : ''}</option>`;
         });
       }
 
@@ -698,10 +630,10 @@
 
     async function submitTransaction() {
       const val = parseFloat(document.getElementById('tx-amount').value);
-      const note = document.getElementById('tx-note').value.trim() || (activeTxType === 'save' ? 'Income Deposit' : 'General Expense');
+      const note = document.getElementById('tx-note').value.trim() || (activeTxType === 'save' ? '存款/收入' : '一般開支');
 
       if (isNaN(val) || val <= 0) {
-        alert('Please enter a valid amount in HKD!');
+        alert('請輸入有效的港幣金額！');
         return;
       }
 
@@ -722,7 +654,7 @@
 
           await addBillRecord('income', val, note, targetObj.title);
         } else {
-          await addBillRecord('income', val, note, 'General Balance');
+          await addBillRecord('income', val, note, '一般餘額');
         }
       } else {
         await recordGeneralExpense(val, note);
@@ -732,20 +664,20 @@
       closeTransactionModal();
     }
 
-    async function recordGeneralExpense(val, note = 'Expense') {
+    async function recordGeneralExpense(val, note = '開支') {
       state.expenses += val;
-      await addBillRecord('expense', val, note, 'General Balance');
+      await addBillRecord('expense', val, note, '一般餘額');
     }
 
     async function removeTarget(id) {
-      if (!confirm('Are you sure you want to delete this target?')) return;
+      if (!confirm('確定要刪除這個目標嗎？')) return;
 
       try {
         await fetch(`/api/targets/${id}`, { method: 'DELETE' });
         state.targets = state.targets.filter(t => t.id !== id);
         updateUI();
       } catch (err) {
-        console.error("Failed to delete target:", err);
+        console.error("刪除目標失敗:", err);
       }
     }
 
@@ -764,7 +696,7 @@
       const amount = parseFloat(document.getElementById('target-amount').value);
 
       if (!title || isNaN(amount) || amount <= 0) {
-        alert('Please enter a valid title and amount!');
+        alert('請輸入有效的目標名稱與金額！');
         return;
       }
 
@@ -781,7 +713,7 @@
         updateUI();
         closeAddTargetModal();
       } catch (err) {
-        console.error("Failed to create target:", err);
+        console.error("創建目標失敗:", err);
       }
     }
 
@@ -808,19 +740,18 @@
         const pct = Math.min(100, Math.round((t.current / t.target) * 100));
         const cardBg = t.isDone ? 'bg-emerald-50/60 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800';
         const doneBadge = t.isDone 
-          ? `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">DONE</span>` 
+          ? `<span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">已達成</span>` 
           : `<span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">${pct}%</span>`;
 
         container.innerHTML += `
           <div class="${cardBg} border p-4 rounded-2xl space-y-3 shadow-sm">
             <div class="flex justify-between items-center gap-2">
               <div class="flex items-center gap-2 min-w-0">
-                <span class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${t.title}</span>
-                ${doneBadge}
+                <span class="font-semibold text-zinc-800 dark:text-zinc-200 text-sm truncate">${t.title}</span>${doneBadge}
               </div>
               
               <div class="flex items-center gap-2 text-zinc-400 shrink-0">
-                <button onclick="removeTarget(${t.id})" title="Delete Target Goal" class="hover:text-rose-500 p-1">
+                <button onclick="removeTarget(${t.id})" title="刪除目標" class="hover:text-rose-500 p-1">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -831,8 +762,8 @@
             </div>
 
             <div class="flex justify-between text-xs text-zinc-400 gap-2">
-              <span>${i18n[currentLang].labels.goal} HKD $${t.target.toLocaleString()}</span>
-              <span class="truncate">HKD $${Math.round(t.current).toLocaleString()} / HKD $${t.target.toLocaleString()}</span>
+              <span>${i18n[currentLang].labels.goal} HKD$${t.target.toLocaleString()}</span>
+              <span class="truncate">HKD $${Math.round(t.current).toLocaleString()} / HKD$${t.target.toLocaleString()}</span>
             </div>
           </div>
         `;
