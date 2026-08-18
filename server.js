@@ -143,9 +143,22 @@ app.get('/api/init-data', (req, res) => {
         if (err) {
             return res.status(500).json({ success: false, error: err.message });
         }
+
+        // 將 SQLite 的 email 資料轉化為前端 UI 認識的 bill 物件格式
+        const mappedBills = rows.map(email => ({
+            id: email.id,
+            title: email.subject || '無主題郵件',
+            sender: email.sender,
+            amount: 0,                   // 預設金額
+            type: 'expense',             // 預設類型 (讓前端 filter 不會過濾掉)
+            category: '郵件通知',         // 預設分類
+            date: email.received_at,
+            rawBody: email.body
+        }));
+
         res.json({
             success: true,
-            billsHistory: rows, // 前端讀取的變數名稱
+            billsHistory: mappedBills,    // 回傳符合前端屬性的陣列
             targets: [],
             events: []
         });
