@@ -12,7 +12,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - EMAIL_USER=raspberryrecive@gmail.com
-      - EMAIL_PASSWORD=twtp lydx hufp xedy  # 填入 16 位元 Google 應用程式專用密碼
+      - EMAIL_USER=${EMAIL_USER}  
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD} 
       - EMAIL_HOST=imap.gmail.com
       - NODE_TLS_REJECT_UNAUTHORIZED=0
