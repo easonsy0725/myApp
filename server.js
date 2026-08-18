@@ -100,7 +100,7 @@ async function checkEmails() {
 }
 
 // 每 10 分鐘自動檢查一次收件匣
-setInterval(checkEmails, 10 * 60 * 1000);
+setInterval(checkEmails, 60000);
 
 // API 路由
 app.get('/api/init-data', (req, res) => {
