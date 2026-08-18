@@ -26,7 +26,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
-// 建立資料表
+// 初始化資料庫資料表
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS emails (
@@ -43,7 +43,7 @@ db.serialize(() => {
 // 2. 解析 IMAP 設定（自動移除密碼空格並忽略 TLS 驗證）
 function getImapConfig() {
     const rawPassword = process.env.EMAIL_PASSWORD || '';
-    const cleanPassword = rawPassword.replace(/\s+/g, ''); // 自動移除 App Password 的空格
+    const cleanPassword = rawPassword.replace(/\s+/g, ''); // 清除所有空格
 
     return {
         imap: {
@@ -53,7 +53,7 @@ function getImapConfig() {
             port: 993,
             tls: true,
             tlsOptions: {
-                rejectUnauthorized: false // 繞過 self-signed certificate 驗證問題
+                rejectUnauthorized: false // 繞過 self-signed certificate 驗證
             },
             authTimeout: 10000
         }
@@ -74,15 +74,15 @@ async function checkEmails() {
 
     let connection;
     try {
-        const config = getImapConfig();
+        const config = getImapConfig(); // 呼叫 getImapConfig 取得正確設定
         connection = await imaps.connect(config);
         await connection.openBox('INBOX');
 
-        // 只搜尋未讀郵件 (UNSEEN)
+        // 僅搜尋 UNSEEN（未讀）郵件
         const searchCriteria = ['UNSEEN'];
         const fetchOptions = {
             bodies: ['HEADER', 'TEXT', ''],
-            markSeen: true // 讀取後自動在 Gmail 標示為已讀
+            markSeen: true // 讀取後將 Gmail 信件標示為已讀
         };
 
         const messages = await connection.search(searchCriteria, fetchOptions);
@@ -102,7 +102,7 @@ async function checkEmails() {
                 const body = parsed.text || parsed.html || '';
                 const messageId = parsed.messageId || idHeader;
 
-                // 將郵件存入 SQLite 資料庫
+                // 將郵件寫入 SQLite
                 await new Promise((resolve) => {
                     const stmt = db.prepare(`
                         INSERT OR IGNORE INTO emails (message_id, sender, subject, body)
@@ -137,14 +137,29 @@ async function checkEmails() {
 
 // 4. API 路由定義
 
+// 前端初始化載入點 (適應前端 /api/init-data 請求)
+app.get('/api/init-data', (req, res) => {
+    db.all('SELECT * FROM emails ORDER BY received_at DESC', [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        res.json({
+            success: true,
+            emails: rows,
+            bills: rows,
+            transactions: [],
+            targets: []
+        });
+    });
+});
+
 // GET /api/emails - 取得已存入資料庫的信件列表
 app.get('/api/emails', (req, res) => {
     db.all('SELECT * FROM emails ORDER BY received_at DESC', [], (err, rows) => {
         if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+            return res.status(500).json({ success: false, error: err.message });
         }
-        res.json({ emails: rows });
+        res.json({ success: true, emails: rows, data: rows });
     });
 });
 
